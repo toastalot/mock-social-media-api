@@ -1,20 +1,24 @@
 from random import randrange
 from typing import Optional
-from fastapi import Body, FastAPI, Response, status, HTTPException
+from fastapi import Body, Depends, FastAPI, Response, status, HTTPException
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from . import models
+from .database import engine, getDB
 
 from envVars import DB, DB_PASSWORD, DB_USER, HOST
 
 app = FastAPI()
+
+models.Base.metadata.create_all(bind=engine)
 
 
 class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
 
 
 # todo - deal with unstable connection
@@ -31,40 +35,27 @@ try:
 except Exception as err:
     print(f"Could not connect to database: {err}")
 
-
-@app.get("/")
-async def root():
-    return {"message": "Hello world"}
-
-
+# todo - pagination
 @app.get("/posts")
-def get_posts():
-    cursor.execute("""SELECT * FROM posts """)
-    posts = cursor.fetchall()
+def get_posts(db: Session = Depends(getDB)):
+    posts = db.query(models.Post).all()
     return {"data": posts}
 
 
 @app.post("/posts", status_code=201)
-def createPosts(post: Post):
-    cursor.execute(
-        """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * """,
-        (post.title, post.content, post.published),
-    )
-    new_post = cursor.fetchone()
-    conn.commit()
-    return {"data": new_post}
-
-
-@app.get("/posts/latest")
-def getLatestPost():
-    latest = myPosts[-1]
-    return latest
+def createPosts(post: Post, db: Session = Depends(getDB)):
+    newPost = models.Post(**post.dict())
+    db.add(newPost)
+    db.commit()
+    db.refresh(newPost)
+    return {"data": newPost}
 
 
 @app.get("/posts/{id}")
-def getPost(id: int):
-    cursor.execute("""SELECT * from posts WHERE id = %s """, (id,))
-    post = cursor.fetchone()
+def getPost(id: int, db: Session = Depends(getDB)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    print(post)
+
     if not post:
         raise HTTPException(
             status_code=404,
@@ -74,27 +65,27 @@ def getPost(id: int):
 
 
 @app.delete("/posts/{id}", status_code=204)
-def deletePost(id: int):
-    cursor.execute("""DELETE FROM posts WHERE id =  %s RETURNING *""", (id,))
-    deletedPost = cursor.fetchone()
-    conn.commit()
-    if not deletedPost:
+def deletePost(id: int, db: Session = Depends(getDB)):
+    postQuery = db.query(models.Post).filter(models.Post.id == id)
+
+    if not postQuery.first():
         raise HTTPException(
             status_code=404,
             detail=f"post with id={id} was not found",
         )
-    return Response(status_code=204)
+    else:
+        postQuery.delete(synchronize_session=False)
+        db.commit()
+        return Response(status_code=204)
 
 
 @app.put("/posts/{id}")
-def updatePost(id: int, post: Post):
-    cursor.execute(
-        """UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
-        (post.title, post.content, post.published, id),
-    )
-    updatedPost = cursor.fetchone()
-    conn.commit()
-    if not updatedPost:
+def updatePost(id: int, post: Post, db: Session = Depends(getDB)):
+    postQuery = db.query(models.Post).filter(models.Post.id == id)
+    oldPost = postQuery.first()
+    if not oldPost:
         raise HTTPException(status_code=404, detail=f"post with id={id} does not exist")
     else:
-        return {"data": updatedPost}
+        postQuery.update(post.dict(), synchronize_session=False)
+        db.commit()
+        return {"data": postQuery.first()}
