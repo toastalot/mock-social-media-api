@@ -3,9 +3,9 @@ from typing import Optional
 from fastapi import Body, Depends, FastAPI, Response, status, HTTPException
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from . import models
+
+from . import models, schemas
 from .database import engine, getDB
 
 from envVars import DB, DB_PASSWORD, DB_USER, HOST
@@ -13,12 +13,6 @@ from envVars import DB, DB_PASSWORD, DB_USER, HOST
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
-
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
 
 
 # todo - deal with unstable connection
@@ -35,6 +29,7 @@ try:
 except Exception as err:
     print(f"Could not connect to database: {err}")
 
+
 # todo - pagination
 @app.get("/posts")
 def get_posts(db: Session = Depends(getDB)):
@@ -43,7 +38,7 @@ def get_posts(db: Session = Depends(getDB)):
 
 
 @app.post("/posts", status_code=201)
-def createPosts(post: Post, db: Session = Depends(getDB)):
+def createPosts(post: schemas.PostCreate, db: Session = Depends(getDB)):
     newPost = models.Post(**post.dict())
     db.add(newPost)
     db.commit()
@@ -80,7 +75,7 @@ def deletePost(id: int, db: Session = Depends(getDB)):
 
 
 @app.put("/posts/{id}")
-def updatePost(id: int, post: Post, db: Session = Depends(getDB)):
+def updatePost(id: int, post: schemas.PostUpdate, db: Session = Depends(getDB)):
     postQuery = db.query(models.Post).filter(models.Post.id == id)
     oldPost = postQuery.first()
     if not oldPost:
