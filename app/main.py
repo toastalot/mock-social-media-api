@@ -34,7 +34,7 @@ except Exception as err:
 @app.get("/posts")
 def get_posts(db: Session = Depends(getDB)):
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
 
 @app.post("/posts", status_code=201)
@@ -43,20 +43,19 @@ def createPosts(post: schemas.PostCreate, db: Session = Depends(getDB)):
     db.add(newPost)
     db.commit()
     db.refresh(newPost)
-    return {"data": newPost}
+    return newPost
 
 
 @app.get("/posts/{id}")
 def getPost(id: int, db: Session = Depends(getDB)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
-    print(post)
 
     if not post:
         raise HTTPException(
             status_code=404,
             detail=f"post with id={id} was not found",
         )
-    return {"post": post}
+    return post
 
 
 @app.delete("/posts/{id}", status_code=204)
@@ -83,4 +82,4 @@ def updatePost(id: int, post: schemas.PostUpdate, db: Session = Depends(getDB)):
     else:
         postQuery.update(post.dict(), synchronize_session=False)
         db.commit()
-        return {"data": postQuery.first()}
+        return postQuery.first()
