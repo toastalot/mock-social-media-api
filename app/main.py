@@ -1,5 +1,5 @@
 from random import randrange
-from typing import Optional
+from typing import List, Optional
 from fastapi import Body, Depends, FastAPI, Response, status, HTTPException
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -31,7 +31,7 @@ except Exception as err:
 
 
 # todo - pagination
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(getDB)):
     posts = db.query(models.Post).all()
     return posts
@@ -46,7 +46,7 @@ def createPosts(post: schemas.PostCreate, db: Session = Depends(getDB)):
     return newPost
 
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schemas.PostResponse)
 def getPost(id: int, db: Session = Depends(getDB)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
 
@@ -73,7 +73,7 @@ def deletePost(id: int, db: Session = Depends(getDB)):
         return Response(status_code=204)
 
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schemas.PostResponse)
 def updatePost(id: int, post: schemas.PostUpdate, db: Session = Depends(getDB)):
     postQuery = db.query(models.Post).filter(models.Post.id == id)
     oldPost = postQuery.first()
