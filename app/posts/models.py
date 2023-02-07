@@ -1,8 +1,9 @@
 from sqlalchemy import TIMESTAMP, Boolean, Column, Integer, String
-from .database import Base
+
+from app.database import Base
 
 
-class Post(Base):
+class Posts(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, nullable=False)

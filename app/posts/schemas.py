@@ -8,11 +8,11 @@ class PostBase(BaseModel):
     published: bool = True
 
 
-class PostCreate(PostBase):
+class CreatePost(PostBase):
     pass
 
 
-class PostUpdate(PostBase):
+class UpdatePost(PostBase):
     pass
 
 
