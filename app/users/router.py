@@ -1,5 +1,3 @@
-from http.client import HTTPException
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -21,7 +19,7 @@ def createUser(user: CreateUser, db: Session = Depends(getDB)):
     db.add(newUser)
     db.commit()
     db.refresh(newUser)
-    return {}
+    return newUser
 
 
 @router.get("/users/{id}", response_model=UserResponse)
