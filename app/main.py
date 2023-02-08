@@ -5,8 +5,8 @@ from psycopg2.extras import RealDictCursor
 from envVars import DB, DB_PASSWORD, DB_USER, HOST
 
 from .database import Base, engine
-from .posts.router import router as postsRouter
-from .users.router import router as usersRouter
+from .routes.posts.router import router as postsRouter
+from .routes.users.router import router as usersRouter
 
 app = FastAPI()
 
