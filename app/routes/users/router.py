@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ...database import getDB
 from ...models import Users
-from app.utils import hashSecret
+from ...utils import hashSecret
 
 from .schemas import CreateUser, UserResponse
 
