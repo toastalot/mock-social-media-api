@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database import getDB
 from .models import Users
@@ -17,9 +18,15 @@ def createUser(user: CreateUser, db: Session = Depends(getDB)):
 
     newUser = Users(**user.dict())
     db.add(newUser)
-    db.commit()
-    db.refresh(newUser)
-    return newUser
+    try:
+        db.commit()
+        db.refresh(newUser)
+    except IntegrityError:
+        raise HTTPException(
+            status_code=409, detail=f"email {newUser.email} is already in use"
+        )
+    else:
+        return newUser
 
 
 @router.get("/users/{id}", response_model=UserResponse)
