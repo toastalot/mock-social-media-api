@@ -8,7 +8,7 @@ from app.database import getDB
 from .models import Posts
 from .schemas import CreatePost, PostResponse, UpdatePost
 
-router = APIRouter()
+router = APIRouter(tags=["Posts"])
 
 # todo - pagination
 @router.get("/posts", response_model=List[PostResponse])

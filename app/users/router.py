@@ -7,7 +7,7 @@ from app.utils import hashSecret
 
 from .schemas import CreateUser, UserResponse
 
-router = APIRouter()
+router = APIRouter(tags=["Users"])
 
 
 @router.post("/users", status_code=201, response_model=UserResponse)
