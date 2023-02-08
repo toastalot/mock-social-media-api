@@ -9,3 +9,4 @@
 - DB - name of database
 - DB_USER
 - DB_PASSWORD 
+- JWT_SECRET - 256 bit secret creating JWT

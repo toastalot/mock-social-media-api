@@ -16,7 +16,13 @@ def getRequired(name: str):
         return envVar
 
 
+# DB
 HOST = getRequired("HOST")
 DB = getRequired("DB")
 DB_USER = getRequired("DB_USER")
 DB_PASSWORD = getRequired("DB_PASSWORD")
+
+# OAUTH2
+JWT_SECRET = getRequired("JWT_SECRET")
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM") or "HS256"
+JWT_EXPIRY_MINUTES = os.environ.get("TOKEN_EXPIRY") or 30
