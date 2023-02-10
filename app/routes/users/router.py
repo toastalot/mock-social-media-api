@@ -4,17 +4,22 @@ from sqlalchemy.exc import IntegrityError
 
 from ...database import getDB
 from ...models import Users
-from ...utils import hashSecret
 
-from .schemas import CreateUser, UserResponse
+from .schemas import CreateUser, User
+from ...auth import AuthHandler
 
 router = APIRouter(tags=["Users"])
 
+authHandler = AuthHandler()
 
-@router.post("/users", status_code=201, response_model=UserResponse)
-def createUser(user: CreateUser, db: Session = Depends(getDB)):
-    hashedPwd = hashSecret(user.password)
-    user.password = hashedPwd
+
+@router.post("/users", status_code=201, response_model=User)
+def createUser(
+    user: CreateUser,
+    db: Session = Depends(getDB),
+):
+
+    user.password = authHandler.getPasswordHash(user.password)
 
     newUser = Users(**user.dict())
     db.add(newUser)
@@ -29,8 +34,10 @@ def createUser(user: CreateUser, db: Session = Depends(getDB)):
         return newUser
 
 
-@router.get("/users/{id}", response_model=UserResponse)
-def getUser(id: int, db: Session = Depends(getDB)):
+@router.get("/users/{id}", response_model=User)
+def getUser(
+    id: int, db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)
+):
     user = db.query(Users).filter(Users.id == id).first()
     if not user:
         raise HTTPException(

@@ -3,6 +3,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
+from ...auth import AuthHandler
+
 from ...database import getDB
 
 from ...models import Posts
@@ -10,15 +12,21 @@ from .schemas import CreatePost, PostResponse, UpdatePost
 
 router = APIRouter(tags=["Posts"])
 
+authHandler = AuthHandler()
+
 # todo - pagination
 @router.get("/posts", response_model=List[PostResponse])
-def get_posts(db: Session = Depends(getDB)):
+def getPosts(db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)):
     posts = db.query(Posts).all()
     return posts
 
 
 @router.post("/posts", status_code=201)
-def createPosts(post: CreatePost, db: Session = Depends(getDB)):
+def createPosts(
+    post: CreatePost,
+    db: Session = Depends(getDB),
+    authUser=Depends(authHandler.requireAuth),
+):
     newPost = Posts(**post.dict())
     db.add(newPost)
     db.commit()
@@ -26,8 +34,13 @@ def createPosts(post: CreatePost, db: Session = Depends(getDB)):
     return newPost
 
 
-@router.get("/posts/{id}", response_model=PostResponse)
-def getPost(id: int, db: Session = Depends(getDB)):
+@router.get(
+    "/posts/{id}",
+    response_model=PostResponse,
+)
+def getPost(
+    id: int, db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)
+):
     post = db.query(Posts).filter(Posts.id == id).first()
 
     if not post:
@@ -39,7 +52,9 @@ def getPost(id: int, db: Session = Depends(getDB)):
 
 
 @router.delete("/posts/{id}", status_code=204)
-def deletePost(id: int, db: Session = Depends(getDB)):
+def deletePost(
+    id: int, db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)
+):
     postQuery = db.query(Posts).filter(Posts.id == id)
 
     if not postQuery.first():
@@ -54,7 +69,12 @@ def deletePost(id: int, db: Session = Depends(getDB)):
 
 
 @router.put("/posts/{id}", response_model=PostResponse)
-def updatePost(id: int, post: UpdatePost, db: Session = Depends(getDB)):
+def updatePost(
+    id: int,
+    post: UpdatePost,
+    db: Session = Depends(getDB),
+    authUser=Depends(authHandler.requireAuth),
+):
     postQuery = db.query(Posts).filter(Posts.id == id)
     oldPost = postQuery.first()
     if not oldPost:
