@@ -18,6 +18,7 @@ class UpdatePost(PostBase):
 
 class PostResponse(PostBase):
     id: int
+    owner_id: int
     created_at: datetime
 
     class Config:

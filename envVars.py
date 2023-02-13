@@ -25,4 +25,4 @@ DB_PASSWORD = getRequired("DB_PASSWORD")
 # OAUTH2
 JWT_SECRET = getRequired("JWT_SECRET")
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM") or "HS256"
-JWT_EXPIRY_MINUTES = os.environ.get("TOKEN_EXPIRY") or 30
+JWT_EXPIRY_MINUTES = float(os.environ.get("TOKEN_EXPIRY") or 30)

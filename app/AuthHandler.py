@@ -18,11 +18,11 @@ class AuthHandler:
     def verifyPassword(self, plainPassword, hashedPassword):
         return self.pwdContext.verify(plainPassword, hashedPassword)
 
-    def encodeToken(self, userId):
+    def encodeToken(self, user):
         payload = {
             "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRY_MINUTES),
             "iat": datetime.utcnow(),
-            "user": userId,
+            "user": {"id": user.id, "email": user.email},
         }
         return jwt.encode(payload, self.secret, algorithm=JWT_ALGORITHM)
 
@@ -35,5 +35,5 @@ class AuthHandler:
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-    def requireAuth(self, auth: HTTPAuthorizationCredentials = Security(security)):
+    def getCurrentUser(self, auth: HTTPAuthorizationCredentials = Security(security)):
         return self.decodeToken(auth.credentials)

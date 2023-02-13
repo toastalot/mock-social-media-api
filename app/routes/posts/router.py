@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
-from ...auth import AuthHandler
+from ...AuthHandler import AuthHandler
 
 from ...database import getDB
 
@@ -16,7 +16,9 @@ authHandler = AuthHandler()
 
 # todo - pagination
 @router.get("/posts", response_model=List[PostResponse])
-def getPosts(db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)):
+def getPosts(
+    db: Session = Depends(getDB), currentUser=Depends(authHandler.getCurrentUser)
+):
     posts = db.query(Posts).all()
     return posts
 
@@ -25,9 +27,9 @@ def getPosts(db: Session = Depends(getDB), authUser=Depends(authHandler.requireA
 def createPosts(
     post: CreatePost,
     db: Session = Depends(getDB),
-    authUser=Depends(authHandler.requireAuth),
+    currentUser=Depends(authHandler.getCurrentUser),
 ):
-    newPost = Posts(**post.dict())
+    newPost = Posts(**post.dict(), owner_id=currentUser["id"])
     db.add(newPost)
     db.commit()
     db.refresh(newPost)
@@ -39,7 +41,9 @@ def createPosts(
     response_model=PostResponse,
 )
 def getPost(
-    id: int, db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)
+    id: int,
+    db: Session = Depends(getDB),
+    currentUser=Depends(authHandler.getCurrentUser),
 ):
     post = db.query(Posts).filter(Posts.id == id).first()
 
@@ -53,15 +57,19 @@ def getPost(
 
 @router.delete("/posts/{id}", status_code=204)
 def deletePost(
-    id: int, db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)
+    id: int,
+    db: Session = Depends(getDB),
+    currentUser=Depends(authHandler.getCurrentUser),
 ):
     postQuery = db.query(Posts).filter(Posts.id == id)
-
-    if not postQuery.first():
+    post = postQuery.first()
+    if not post:
         raise HTTPException(
             status_code=404,
             detail=f"post with id={id} was not found",
         )
+    if currentUser["id"] != post.owner_id:
+        raise HTTPException(status_code=403, detail="Not Authorized")
     else:
         postQuery.delete(synchronize_session=False)
         db.commit()
@@ -73,13 +81,16 @@ def updatePost(
     id: int,
     post: UpdatePost,
     db: Session = Depends(getDB),
-    authUser=Depends(authHandler.requireAuth),
+    currentUser=Depends(authHandler.getCurrentUser),
 ):
     postQuery = db.query(Posts).filter(Posts.id == id)
     oldPost = postQuery.first()
     if not oldPost:
         raise HTTPException(status_code=404, detail=f"post with id={id} does not exist")
-    else:
-        postQuery.update(post.dict(), synchronize_session=False)
-        db.commit()
-        return postQuery.first()
+    print(currentUser["id"])
+    print(oldPost.id)
+    if currentUser["id"] != oldPost.owner_id:
+        raise HTTPException(status_code=403, detail="Not Authorized")
+    postQuery.update(post.dict(), synchronize_session=False)
+    db.commit()
+    return postQuery.first()

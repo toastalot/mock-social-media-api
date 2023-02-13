@@ -6,7 +6,7 @@ from ...database import getDB
 from ...models import Users
 
 from .schemas import CreateUser, User
-from ...auth import AuthHandler
+from ...AuthHandler import AuthHandler
 
 router = APIRouter(tags=["Users"])
 
@@ -36,7 +36,9 @@ def createUser(
 
 @router.get("/users/{id}", response_model=User)
 def getUser(
-    id: int, db: Session = Depends(getDB), authUser=Depends(authHandler.requireAuth)
+    id: int,
+    db: Session = Depends(getDB),
+    currentUser=Depends(authHandler.getCurrentUser),
 ):
     user = db.query(Users).filter(Users.id == id).first()
     if not user:

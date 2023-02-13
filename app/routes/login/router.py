@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
-from ...auth import AuthHandler
+from ...AuthHandler import AuthHandler
 from ...models import Users
 from .schemas import Credentials, Token
 from ...database import getDB
@@ -19,6 +19,5 @@ def login(credentials: Credentials, db: Session = Depends(getDB)):
         not authHandler.verifyPassword(credentials.password, user.password)
     ):
         raise HTTPException(status_code=403, detail="invalid login details")
-
-    token = authHandler.encodeToken(user.id)
+    token = authHandler.encodeToken(user)
     return {"token": token}
