@@ -26,3 +26,13 @@ class Users(Base):
     created_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default="now()"
     )
+
+
+class Likes(Base):
+    __tablename__ = "likes"
+    post_id = Column(
+        Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )

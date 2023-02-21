@@ -26,6 +26,8 @@ class AuthHandler:
         }
         return jwt.encode(payload, self.secret, algorithm=JWT_ALGORITHM)
 
+    ### todo - define a type for user so we get type hints and can remember
+    ###        what is in it when using elsewhere
     def decodeToken(self, token):
         try:
             payload = jwt.decode(token, self.secret, algorithms=[JWT_ALGORITHM])

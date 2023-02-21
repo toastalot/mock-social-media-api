@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
@@ -17,9 +17,12 @@ authHandler = AuthHandler()
 # todo - pagination
 @router.get("/posts", response_model=List[PostResponse])
 def getPosts(
-    db: Session = Depends(getDB), currentUser=Depends(authHandler.getCurrentUser)
+    db: Session = Depends(getDB),
+    currentUser=Depends(authHandler.getCurrentUser),
+    search: Optional[str] = "",
 ):
-    posts = db.query(Posts).all()
+    print(currentUser)
+    posts = db.query(Posts).filter(Posts.title.contains(search)).all()
     return posts
 
 
@@ -46,7 +49,6 @@ def getPost(
     currentUser=Depends(authHandler.getCurrentUser),
 ):
     post = db.query(Posts).filter(Posts.id == id).first()
-
     if not post:
         raise HTTPException(
             status_code=404,
