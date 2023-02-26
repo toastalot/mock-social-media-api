@@ -1,13 +1,15 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi.responses import JSONResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ...AuthHandler import AuthHandler
 
 from ...database import getDB
 
-from ...models import Posts
+from ...models import Likes, Posts
 from .schemas import CreatePost, PostResponse, UpdatePost
 
 router = APIRouter(tags=["Posts"])
@@ -21,9 +23,55 @@ def getPosts(
     currentUser=Depends(authHandler.getCurrentUser),
     search: Optional[str] = "",
 ):
-    print(currentUser)
-    posts = db.query(Posts).filter(Posts.title.contains(search)).all()
+    posts = (
+        db.query(
+            Posts.id,
+            Posts.published,
+            Posts.content,
+            Posts.owner_id,
+            Posts.created_at,
+            Posts.title,
+            func.count(Likes.post_id).label("likes"),
+        )
+        .outerjoin(Likes, Likes.post_id == Posts.id)
+        .group_by(Posts.id)
+        .filter(Posts.title.contains(search))
+        .order_by(Posts.id.desc())
+    ).all()
+
     return posts
+
+
+@router.get(
+    "/posts/{id}",
+    response_model=PostResponse,
+)
+def getPost(
+    id: int,
+    db: Session = Depends(getDB),
+    currentUser=Depends(authHandler.getCurrentUser),
+):
+    post = (
+        db.query(
+            Posts.id,
+            Posts.published,
+            Posts.content,
+            Posts.owner_id,
+            Posts.created_at,
+            Posts.title,
+            func.count(Likes.post_id).label("likes"),
+        )
+        .outerjoin(Likes, Likes.post_id == Posts.id)
+        .group_by(Posts.id)
+        .filter(Posts.id == id)
+        .first()
+    )
+    if not post:
+        raise HTTPException(
+            status_code=404,
+            detail=f"post with id={id} was not found",
+        )
+    return post
 
 
 @router.post("/posts", status_code=201)
@@ -37,24 +85,6 @@ def createPosts(
     db.commit()
     db.refresh(newPost)
     return newPost
-
-
-@router.get(
-    "/posts/{id}",
-    response_model=PostResponse,
-)
-def getPost(
-    id: int,
-    db: Session = Depends(getDB),
-    currentUser=Depends(authHandler.getCurrentUser),
-):
-    post = db.query(Posts).filter(Posts.id == id).first()
-    if not post:
-        raise HTTPException(
-            status_code=404,
-            detail=f"post with id={id} was not found",
-        )
-    return post
 
 
 @router.delete("/posts/{id}", status_code=204)
