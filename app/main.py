@@ -12,8 +12,6 @@ from .routes.like.router import router as likeRouter
 
 app = FastAPI()
 
-Base.metadata.create_all(bind=engine)
-
 app.include_router(postsRouter)
 app.include_router(usersRouter)
 app.include_router(loginRouter)
