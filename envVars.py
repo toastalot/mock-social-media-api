@@ -26,3 +26,6 @@ DB_PASSWORD = getRequired("DB_PASSWORD")
 JWT_SECRET = getRequired("JWT_SECRET")
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM") or "HS256"
 JWT_EXPIRY_MINUTES = float(os.environ.get("TOKEN_EXPIRY") or 30)
+
+# CORS
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS").split(",")
