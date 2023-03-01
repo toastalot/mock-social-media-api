@@ -7,6 +7,11 @@
 ## Required Environment Variables
 - HOST - database url
 - DB - name of database
-- DB_USER
-- DB_PASSWORD 
+- DB_USER - databse username
+- DB_PASSWORD - database password
 - JWT_SECRET - 256 bit secret creating JWT
+- ALLOWED_ORIGINS - allowed origins for CORS policy, supply multiple in form a, b, c ...
+
+## Other Environment Variables
+- JWT_EXPIRY_MINUTES - expiry for jwt, defaults to 30 if left unset
+- JWT_ALGORITHM - hashing algorithm 
