@@ -21,6 +21,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# just for testing, delete later and add authenticated healthcheck endpoint
+@app.get("/")
+def getRoot():
+    return {"message": "hello world"}
+
+
 app.include_router(postsRouter)
 app.include_router(usersRouter)
 app.include_router(loginRouter)

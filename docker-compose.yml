@@ -1,0 +1,29 @@
+version: "3"
+services:
+
+  api:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - 8000:8000
+    environment:
+      - HOST=postgres
+      - DB
+      - DB_USER
+      - DB_PASSWORD
+      - JWT_SECRET
+      - JWT_ALGORITHM
+      - JWT_EXPIRY_MINUTES
+      - ALLOWED_ORIGINS
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
