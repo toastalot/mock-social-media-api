@@ -17,10 +17,12 @@ def getRequired(name: str):
 
 
 # DB
-HOST = getRequired("HOST")
-DB = getRequired("DB")
+DB_HOST = getRequired("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT") or 5432
+DB_NAME = getRequired("DB_NAME")
 DB_USER = getRequired("DB_USER")
 DB_PASSWORD = getRequired("DB_PASSWORD")
+
 
 # OAUTH2
 JWT_SECRET = getRequired("JWT_SECRET")

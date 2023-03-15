@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from psycopg2.extras import RealDictCursor
 from fastapi.middleware.cors import CORSMiddleware
 
-from envVars import ALLOWED_ORIGINS, DB, DB_PASSWORD, DB_USER, HOST
+from envVars import ALLOWED_ORIGINS
 
 from .database import Base, engine
 from .routes.posts.router import router as postsRouter
