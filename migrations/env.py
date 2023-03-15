@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from envVars import DB, DB_PASSWORD, DB_USER, HOST
+from envVars import DB_NAME, DB_PASSWORD, DB_USER, DB_HOST, DB_PORT
 
 from app.models import Base
 
@@ -13,7 +13,7 @@ from app.models import Base
 # access to the values within the .ini file in use.
 config = context.config
 config.set_main_option(
-    "sqlalchemy.url", f"postgresql://{DB_USER}:{DB_PASSWORD}@{HOST}/{DB}"
+    "sqlalchemy.url", f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
 # Interpret the config file for Python logging.

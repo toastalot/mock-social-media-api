@@ -15,7 +15,7 @@
 
 ## Required Environment Variables
 
-- `DB_HOST` - url for postgres instance
+- `DB_HOST` - url for postgres instance. localhost for dev and postgres for prod.
 - `DB_NAME` - name of database
 - `DB_USER` - database username
 - `DB_PASSWORD` - database password
